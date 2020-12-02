@@ -103,10 +103,33 @@ class RedBoxApp
   end 
 
   def movie_by_rating
-    Review.average(:rating).group(:movie_id).to_i
+    require "tty-prompt"
+    prompt = TTY::Prompt.new
+
+    list=[3,4,5] 
+    answer = prompt.select(" Rating:", list)
+
+    puts "="*50
+
+
+    array = ActiveRecord::Base.connection.execute("
+     SELECT
+       movies.name, avg(rating) as average_rating
+     FROM
+       reviews
+     JOIN
+       movies
+     ON reviews.movie_id = movies.id
+     GROUP BY reviews.movie_id")
+
+
+    array.each do |hash|
+      if hash["average_rating"] > answer.to_i
+         puts hash["name"]
+      end
+    end
   end 
  
-  
   
 
 end 
