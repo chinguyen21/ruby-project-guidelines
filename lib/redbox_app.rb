@@ -1,16 +1,15 @@
+
 class RedBoxApp
 
 
   def run
     welcome
     sign_up_or_login
-    display_action
-    choose
+    choose  
   end 
 
 
   private
-
   def welcome
     puts "="*50
     puts "            Welcome to RedBox"
@@ -33,39 +32,32 @@ class RedBoxApp
     end
   end 
 
-  def display_action
-    sleep(2)
-    puts "="*50
-    puts "Menu"
-    puts "1.Shows all the movies"
-    puts "2.Search movie by name"
-    puts "3.Search movie by rate_age"
-    puts "4.Search movie by rating"
-    
-    puts "="*50
-    sleep(2)
-  end 
-
-
   def choose
-    puts "Type your choice"
-    answer = gets.chomp.to_i
-    if answer == 1
+      require "tty-prompt"
+      prompt = TTY::Prompt.new
+      
+    sleep(1)
+    puts "="*50
+    list=%w(movies find_by_name rate_age rating)
+    answer =  prompt.select(" Menu:", list)
+    puts "="*50
+    if answer == "movies"
       show_all_movie
     elsif
-      answer == 2
+      answer == "find_by_name"
       movie_by_name
     elsif
-      answer == 3
+      answer == "rate_age"
       movie_by_rate_age
     elsif
-      answer == 4
+      answer == "rating"
       movie_by_rating
-    else
-      puts " Please select numbers from 1-4!"
-    end 
+   end 
+
   end
 
+  
+  
   def show_all_movie
       Movie.all.each do |t|
       puts t.name
@@ -87,6 +79,34 @@ class RedBoxApp
       end 
     end 
     end       
+  end
+    
+  def  rate_choice 
+    require "tty-prompt"
+    prompt = TTY::Prompt.new
+
+    list=["G","R","PG-13"] #list = ["g","r","pg-13"]
+    answer =  prompt.select(" Rating age:", list)
+    puts "="*50
+   
+
+    Movie.all.select do |movie| 
+      if movie.rate_age == answer
+        puts movie.name
+      end 
+    end 
+   
   end 
+
+  def movie_by_rate_age
+    rate_choice
+  end 
+
+  def movie_by_rating
+    Review.average(:rating).group(:movie_id).to_i
+  end 
+ 
+  
+  
 
 end 
