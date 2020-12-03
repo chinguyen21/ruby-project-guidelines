@@ -25,4 +25,3 @@ receipt4 = Receipt.create(user_id: user2.id, movie_id: movie4.id)
 
 
 
-puts "dd"

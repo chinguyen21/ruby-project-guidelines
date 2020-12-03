@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_02_221729) do
+ActiveRecord::Schema.define(version: 2020_12_03_175921) do
 
   create_table "movies", force: :cascade do |t|
     t.string "name"
@@ -23,6 +23,7 @@ ActiveRecord::Schema.define(version: 2020_12_02_221729) do
     t.integer "user_id"
     t.date "checkout_date"
     t.date "return_date"
+    t.string "status"
   end
 
   create_table "reviews", force: :cascade do |t|
