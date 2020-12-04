@@ -53,7 +53,6 @@ class RedBoxApp
       about
     else 
       exit
-      system("clear")
     end
   end
 
@@ -186,8 +185,8 @@ class RedBoxApp
 
   def checked_out_history
     @user.receipts.reload
-    if @user.receipts.nil?
-      puts "No history"
+    if @user.receipts.empty?
+      puts "No history".italic
       puts ""
     else
       @user.receipts.each do |receipt|
@@ -206,7 +205,7 @@ class RedBoxApp
 
   def throw_error
     puts "Movie does not exist."
-    choice = prompt.select("", ["Enter movie name again:", "Back to the Menu"])
+    choice = prompt.select("", ["Enter movie name again:", "Back"])
     choice == "Enter movie name again:" ? movies_by_name : movies_search_page
   end
 
@@ -278,6 +277,7 @@ class RedBoxApp
       end
     end 
   end
+
 
   def check_out(movie_id, user_id)
     ask = prompt.yes?("Do you want to rent this movie?")
