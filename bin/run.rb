@@ -1,7 +1,7 @@
 require_relative '../config/environment'
 
 
-app=RedBoxApp.new
+app = RedBoxApp.new
 app.run
 
 
