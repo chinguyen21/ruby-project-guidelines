@@ -9,7 +9,7 @@ class RedBoxApp
     welcome
     main_page
   end
-  
+
   private
 
   def prompt
@@ -44,12 +44,14 @@ class RedBoxApp
   end 
 
   def main_page
-    select = prompt.select("Main Page".bold.underline.red, ["Sign up or log in", "About us", "Exit"])
-    if select == "Sign up or log in"
+    @select = prompt.select("Main Page".bold.underline.red, ["Sign up", "Sign in", "About us", "Exit"])
+    if @select == "Sign up"
       sign_up_or_login
-    elsif select == "About us"
+    elsif @select == "Sign in"
+      sign_up_or_login
+    elsif @select == "About us"
       about
-    else
+    else @select == "Exit"
       exit
     end
   end
@@ -64,19 +66,39 @@ class RedBoxApp
     main_page
   end
 
-  def sign_up_or_login
-    email = prompt.ask("Please enter your email address to sign up or login:").downcase
-    user = User.find_by(email_address: email)
-    if user.nil?
-      user_name = prompt.ask("Please enter your name:").downcase
-      @user = User.create(email_address: email, name: user_name)
-      puts "Congratulations for creating an account!"
-    else
-      @user = user
-      puts "Hello #{@user.name}. Happy to see you back!"
-    end
-    account_page
+  def sign_up
+    puts "Please enter your name"
+    user_name=gets.chomp.downcase
   end 
+  
+  def login
+    puts "Please enter your email address"
+    @email=gets.chomp.downcase
+    @user_email=User.find_by(email_address: @email)
+  end  
+
+  def sign_up_or_login
+     if @select == "Sign in" 
+        if login.nil? 
+          puts "Wrong email address, try again!\n".colorize(:red)
+          sign_up_or_login
+        elsif @select == "Sign in" 
+          @user = User.find_by(email_address: @email)
+          puts "Welcome back, #{@user.name}!".colorize(:green).italic  
+        end
+                                
+     elsif 
+       if login.nil? 
+          @user = User.create(name: sign_up, email_address: @email)
+          puts "\nCongratulation! you have successfully created your account".colorize(:green).italic
+          sleep(2)
+       else 
+          puts "\nThe email address is already used, Enter a different email address\n"..colorize(:red)
+          sign_up_or_login        
+       end 
+     end
+     account_page     
+  end
 
   def account_page
     select = prompt.select("Account Page".bold.underline.red, ["Account information", "Edit account", "Delete account", "Movies Page", "Sign out"])
@@ -96,9 +118,9 @@ class RedBoxApp
 
   def account_info
     puts ""
-    puts "Account information".colorize(:pink) 
-    puts "Account name: #{@user.name}".colorize(:pink) 
-    puts "Email address: #{@user.email_address}".colorize(:pink) 
+    puts "Account name: #{@user.name}".colorize(:yellow)
+    puts ""
+    puts "Email address: #{@user.email_address}".colorize(:yellow)
     puts ""
     back_to_account_page
   end
@@ -113,7 +135,7 @@ class RedBoxApp
     if select == "Name"
       puts "Enter new name:"
       new_name = gets.chomp
-      @user.update(name: new_name)
+      @user.update(name: new_name) 
       puts "Successful change your name!".colorize(:yellow).italic
     else select == "Email address"
       puts "Enter new email address:"
@@ -127,7 +149,7 @@ class RedBoxApp
   def movies_search_page
     sleep(1)
     puts "=" * 50
-    list = %w(All_movies Movies_by_name Movies_by_rate_age Movies_by_rating Checked_out_history Return Sign_out)
+    list = %w(All_movies Movies_by_name Movies_by_rate_age Movies_by_rating Checked_out_history Return Back Sign_out)
     answer = prompt.select("SEARCH:", list, symbols: { marker: ">>" })
     puts "=" * 50
     if answer == "All_movies"
@@ -142,21 +164,22 @@ class RedBoxApp
       checked_out_history 
     elsif answer == "Return"
       return_movie
-    elsif answer == "Back to account page"
-      back_to_account_page
+    elsif answer == "Back"
+      account_page
     elsif answer == "Sign_out"
       sign_out
     end
   end
 
-
-
   def checked_out_history
+    @user.receipts.reload
     @user.receipts.each do |receipt|
         movie = Movie.find_by(id: receipt.movie_id)
-        puts "#{movie.name} =>   Return Date: #{receipt.return_date}"
+        puts "#{movie.name} =>  Return Date: #{receipt.return_date}  => Status: #{receipt.status}".colorize(:yellow)
+        puts ""
     end
     back_to_movies_search_page
+    system("clear")
   end
 
   def show_all_movies
@@ -209,8 +232,9 @@ class RedBoxApp
 
   def return_movie
     return_movie_list = []
-    if @user.receipts.empty?
-      puts "You don't have any movie rental now."
+    if @user.receipts.all? {|receipt| receipt.status == "returned"}
+      puts "You don't have any movie rental now.".colorize(:yellow)
+      puts ""
     else
       @user.receipts.map do |receipt|
         if receipt.status == "open rental"
@@ -219,7 +243,7 @@ class RedBoxApp
         end
       end 
     end
-    select_movie = prompt.select("Which movie do you want to return?", return_movie_list << "Back")
+    select_movie = prompt.select("Choose", return_movie_list << "Back")
     if select_movie == "Back"
       movies_search_page
     else
@@ -284,7 +308,6 @@ class RedBoxApp
     puts ""
     sleep(1)
   end
-
 
 end 
 
