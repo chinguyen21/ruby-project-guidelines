@@ -44,6 +44,9 @@ class RedBoxApp
   end 
 
   def main_page
+    system("clear")
+    puts ""
+    puts ""
     @select = prompt.select("Main Page".bold.underline.red, ["Sign up", "Login", "About us", "Exit"])
     if @select == "Sign up"
       sign_up_or_login
@@ -67,14 +70,14 @@ class RedBoxApp
   end
 
   def sign_up
-    puts "Please enter your name"
-    user_name=gets.chomp.downcase
+    puts "      Please enter your name".colorize(:blue)
+    user_name = gets.chomp.downcase
   end 
   
   def login
-    puts "Please enter your email address"
-    @email=gets.chomp.downcase
-    @user_email=User.find_by(email_address: @email)
+    puts "      Please enter your email address:".colorize(:blue)   
+            @email = gets.chomp.downcase
+    @user_email = User.find_by(email_address: @email)
   end  
 
   def sign_up_or_login
@@ -87,14 +90,14 @@ class RedBoxApp
           @user = User.find_by(email_address: @email)
           puts "Welcome back, #{@user.name}!".colorize(:green).italic
           puts ""
-          sleep(2)  
+          sleep(2.5)  
         end                 
      elsif 
        if login.nil? 
           @user = User.create(name: sign_up, email_address: @email)
           puts "\nCongratulation! you have successfully created your account".colorize(:green).italic
           puts ""
-          sleep(2)
+          sleep(2.5)
        else 
           puts "\nThe email address is already used, Enter a different email address\n".colorize(:red)
           sign_up_or_login        
@@ -104,6 +107,9 @@ class RedBoxApp
   end
 
   def account_page
+    system("clear")
+    puts ""
+    puts ""
     select = prompt.select("Account Page".bold.underline.red, ["Account information", "Edit account", "Delete account", "Movies Page", "Sign out"])
     if select == "Account information"
       account_info
@@ -119,7 +125,7 @@ class RedBoxApp
   end
 
   def delete_account
-    ask = prompt.yes?("Confirm if you want to delete your account???")
+    ask = prompt.yes?("Confirm if you want to delete your account???").blink
     if ask == true
       @user.destroy
       main_page
@@ -145,7 +151,7 @@ class RedBoxApp
   def edit_account
     select = prompt.select("Edit".bold.underline.red, ["Name", "Email address"])
     if select == "Name"
-      puts "Enter new name:"
+      puts "   Your name is #{@user.name}. Enter new name:".colorize(:blue)
       new_name = gets.chomp
       @user.update(name: new_name) 
       puts "Successful change your name!".colorize(:yellow).italic
@@ -159,6 +165,9 @@ class RedBoxApp
   end
 
   def movies_search_page
+    system("clear")
+    puts ""
+    puts ""
     sleep(1)
     puts "=" * 50
     list = %w(All_movies Movies_by_name Movies_by_rate_age Movies_by_rating Checked_out_history Return Back Sign_out)
@@ -272,15 +281,29 @@ class RedBoxApp
           movie.update(quantity: update_quantity)
           Receipt.update(select_movie_a[-1], status: "returned")
           puts "Thank you for the return!".colorize(:yellow).italic
-          back_to_movies_search_page
+          sleep(1)
+          leave_review(movie.id)
         end
       end
     end 
   end
 
 
+  def leave_review(movie_id)
+    ask = prompt.yes?("Do you want to write a review for this movie?")
+    if ask == true
+      content = prompt.ask("Write a review:")
+      rating = prompt.ask("Rating(out of 5.0):")
+      new_review = Review.create(movie_id: movie_id, user_id: @user.id, rating: rating, content: content)
+      puts "Thank your for your review!".colorize(:yellow)
+      sleep(3)
+    end
+    back_to_movies_search_page
+  end
+
+
   def check_out(movie_id, user_id)
-    ask = prompt.yes?("Do you want to rent this movie?")
+    ask = prompt.yes?("Do you want to rent this movie?".colorize(:yellow))
     if ask == true
       new_receipt = Receipt.create(movie_id: movie_id, user_id: user_id, checkout_date: Time.now, return_date: Time.now + 7.days.to_i, status: "open rental") 
       update_quantity = Movie.find_by_id(movie_id).quantity - 1
@@ -317,7 +340,7 @@ class RedBoxApp
   def sign_out
     sleep(1)
     puts "Successful signed out!".colorize(:yellow).italic
-    sleep(1)
+    sleep(3)
     main_page
   end
 
@@ -325,7 +348,7 @@ class RedBoxApp
     puts "" 
     puts "Thank you for coming to RedBox. See you next time!".colorize(:yellow).italic.blink
     puts ""
-    sleep(1)
+    sleep(2)
   end
 
 end 
