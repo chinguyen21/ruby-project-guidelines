@@ -7,7 +7,6 @@ require 'colorized_string'
 class RedBoxApp 
   def run
     welcome
-    main_page
   end
 
   private
@@ -39,8 +38,9 @@ class RedBoxApp
                                                              
       
        "
-  sleep(2) 
+  sleep(5) 
   puts "=" * 50
+  main_page
   end 
 
   def main_page
@@ -81,26 +81,29 @@ class RedBoxApp
   end  
 
   def sign_up_or_login
+    system("clear")
      if @select == "Login" 
         if login.nil? 
           puts "Wrong email address, try again!\n".colorize(:red)
-          select = prompt.select("======",["Enter email address again:","Back"])
+          select = prompt.select("======",["Enter email address again","Back"])
           select == "Back" ? main_page : sign_up_or_login
         elsif @select == "Login" 
           @user = User.find_by(email_address: @email)
           puts "Welcome back, #{@user.name}!".colorize(:green).italic
           puts ""
-          sleep(2.5)  
+          sleep(2)  
         end                 
      elsif 
        if login.nil? 
           @user = User.create(name: sign_up, email_address: @email)
           puts "\nCongratulation! you have successfully created your account".colorize(:green).italic
           puts ""
-          sleep(2.5)
+          sleep(2)
        else 
-          puts "\nThe email address is already used, Enter a different email address\n".colorize(:red)
-          sign_up_or_login        
+          puts "\nThe email address is already used, enter a different email address.\n".colorize(:red)
+          sleep(2)
+          select = prompt.select("======",["Continue sign up?:","Back"])
+          select == "Back" ? main_page : sign_up_or_login       
        end 
      end
      account_page     
@@ -124,8 +127,18 @@ class RedBoxApp
     end
   end
 
+  def review_history
+    @user.reviews.reload
+    @user.reviews.each do |review|
+      puts "    Movie: #{Movie.find_by_id(review.movie_id).name}".bold.colorize(:yellow)
+      puts "Your review: #{review.content}"
+      puts "Your rating: #{review.rating}".colorize(:blue)
+    end
+    back_to_movies_search_page
+  end
+
   def delete_account
-    ask = prompt.yes?("Confirm if you want to delete your account???").blink
+    ask = prompt.yes?("Confirm if you want to delete your account???".blink)
     if ask == true
       @user.destroy
       main_page
@@ -136,9 +149,9 @@ class RedBoxApp
 
   def account_info
     puts ""
-    puts "Account name: #{@user.name}".colorize(:yellow)
+    puts "    Account name: #{@user.name}".colorize(:yellow)
     puts ""
-    puts "Email address: #{@user.email_address}".colorize(:yellow)
+    puts "    Email address: #{@user.email_address}".colorize(:yellow)
     puts ""
     back_to_account_page
   end
@@ -151,7 +164,7 @@ class RedBoxApp
   def edit_account
     select = prompt.select("Edit".bold.underline.red, ["Name", "Email address"])
     if select == "Name"
-      puts "   Your name is #{@user.name}. Enter new name:".colorize(:blue)
+      puts "   Your old name is #{@user.name}. Enter new name:".colorize(:blue)
       new_name = gets.chomp
       @user.update(name: new_name) 
       puts "Successful change your name!".colorize(:yellow).italic
@@ -170,7 +183,7 @@ class RedBoxApp
     puts ""
     sleep(1)
     puts "=" * 50
-    list = %w(All_movies Movies_by_name Movies_by_rate_age Movies_by_rating Checked_out_history Return Back Sign_out)
+    list = %w(All_movies Movies_by_name Movies_by_rate_age Movies_by_rating Checked_out_history Return Review_History Back Sign_out)
     answer = prompt.select("SEARCH:", list, symbols: { marker: ">>" })
     puts "=" * 50
     if answer == "All_movies"
@@ -185,6 +198,8 @@ class RedBoxApp
       checked_out_history 
     elsif answer == "Return"
       return_movie
+    elsif answer == "Review_History"
+      review_history
     elsif answer == "Back"
       account_page
     elsif answer == "Sign_out"
@@ -213,7 +228,7 @@ class RedBoxApp
   end 
 
   def throw_error
-    puts "Movie does not exist."
+    puts "  Sorry. We don't have that movie :("
     choice = prompt.select("", ["Enter movie name again:", "Back"])
     choice == "Enter movie name again:" ? movies_by_name : movies_search_page
   end
@@ -290,7 +305,7 @@ class RedBoxApp
 
 
   def leave_review(movie_id)
-    ask = prompt.yes?("Do you want to write a review for this movie?")
+    ask = prompt.yes?("Do you want to write a review for this movie?".colorize(:blue))
     if ask == true
       content = prompt.ask("Write a review:")
       rating = prompt.ask("Rating(out of 5.0):")
@@ -310,7 +325,7 @@ class RedBoxApp
       Movie.update(movie_id, quantity: update_quantity) 
       puts "\nSuccessful check out #{Movie.find_by(id: movie_id).name}. Your rent is due on #{new_receipt.return_date}.".colorize(:yellow).italic
       puts "=" * 50
-      puts "Do you want to rent other movies or sign out?"
+      puts "Do you want to rent other movies or sign out?".colorize(:blue)
       back_to_movies_search_page
     else
       movies_search_page
@@ -330,7 +345,7 @@ class RedBoxApp
           if movie.available? == "yes"
             check_out(movie.id, @user.id)
           else
-            puts "#{movie.name} is not available."
+            puts "Sorry, #{movie.name} is not available.".colorize(:red)
             back_to_movies_search_page
           end
         end
@@ -340,7 +355,7 @@ class RedBoxApp
   def sign_out
     sleep(1)
     puts "Successful signed out!".colorize(:yellow).italic
-    sleep(3)
+    sleep(1)
     main_page
   end
 
